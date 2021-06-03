@@ -11,8 +11,8 @@
              d:DesignWidth="800"
              Background="White"
              mc:Ignorable="d">
-    <GroupBox x:Name="gbRoot" Header="Appx Packages">
-        <GroupBox.Resources>
+    <Grid x:Name="gbRoot">
+        <Grid.Resources>
             <CollectionViewSource x:Key="SortedItems"
                                   Filter="CollectionViewSource_Filter"
                                   Source="{Binding ElementName=root, Path=AppxPackages}">
@@ -20,7 +20,7 @@
                     <scm:SortDescription Direction="Ascending" PropertyName="Name" />
                 </CollectionViewSource.SortDescriptions>
             </CollectionViewSource>
-        </GroupBox.Resources>
+        </Grid.Resources>
 
         <Grid>
             <StackPanel Height="30"
@@ -76,5 +76,5 @@
                      VerticalScrollBarVisibility="Visible" />
 
         </Grid>
-    </GroupBox>
+    </Grid>
 </UserControl>
