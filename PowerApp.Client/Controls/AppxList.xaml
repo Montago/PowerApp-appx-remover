@@ -1,0 +1,80 @@
+﻿<UserControl x:Class="PowerApp.Client.Controls.AppxList"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:local="clr-namespace:PowerApp.Client.Controls"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
+             x:Name="root"
+             d:DataContext="{d:DesignInstance Type=local:AppxList}"
+             d:DesignHeight="450"
+             d:DesignWidth="800"
+             Background="White"
+             mc:Ignorable="d">
+    <GroupBox x:Name="gbRoot" Header="Appx Packages">
+        <GroupBox.Resources>
+            <CollectionViewSource x:Key="SortedItems"
+                                  Filter="CollectionViewSource_Filter"
+                                  Source="{Binding ElementName=root, Path=AppxPackages}">
+                <CollectionViewSource.SortDescriptions>
+                    <scm:SortDescription Direction="Ascending" PropertyName="Name" />
+                </CollectionViewSource.SortDescriptions>
+            </CollectionViewSource>
+        </GroupBox.Resources>
+
+        <Grid>
+            <StackPanel Height="30"
+                        VerticalAlignment="Top"
+                        Orientation="Horizontal">
+
+                <CheckBox Margin="10,0,0,0"
+                          Content="AllUsers"
+                          IsChecked="{Binding ElementName=root, Path=Filter.AllUsers}" />
+
+                <CheckBox Margin="10,0,10,0"
+                          Content="Removable"
+                          IsChecked="{Binding ElementName=root, Path=Filter.Removable}" />
+
+                <Label>SignatureKind:</Label>
+                <ComboBox ItemsSource="{Binding Kinds, ElementName=root}" SelectedItem="{Binding ElementName=root, Path=Filter.Kind}" />
+
+                <Label>Name like:</Label>
+                <TextBox Width="100" Text="{Binding Filter.TextFilter, ElementName=root, UpdateSourceTrigger=PropertyChanged}" />
+
+
+            </StackPanel>
+
+            <ListView Margin="0,30,0,150" ItemsSource="{Binding Source={StaticResource SortedItems}}">
+                <ListView.View>
+                    <GridView>
+                        <GridViewColumn Width="80" Header="Uninstall">
+                            <GridViewColumn.CellTemplate>
+                                <DataTemplate>
+                                    <Button Click="UninstallPackage" Content="Remove" />
+                                </DataTemplate>
+                            </GridViewColumn.CellTemplate>
+                        </GridViewColumn>
+                        <GridViewColumn DisplayMemberBinding="{Binding Name}" Header="Name" />
+                        <GridViewColumn DisplayMemberBinding="{Binding Status}" Header="Status" />
+                        <GridViewColumn DisplayMemberBinding="{Binding NonRemovable}" Header="NonRemovable" />
+                        <GridViewColumn DisplayMemberBinding="{Binding SignatureKind}" Header="SignatureKind" />
+                        <GridViewColumn DisplayMemberBinding="{Binding Version}" Header="Version" />
+                        <GridViewColumn DisplayMemberBinding="{Binding InstallLocation}" Header="Install Location" />
+                        <GridViewColumn DisplayMemberBinding="{Binding Publisher}" Header="Publisher" />
+                        <GridViewColumn DisplayMemberBinding="{Binding PackageFullName}" Header="FullName" />
+                    </GridView>
+                </ListView.View>
+            </ListView>
+
+            <TextBox Name="tbErrorMessage"
+                     Height="150"
+                     VerticalAlignment="Bottom"
+                     AcceptsReturn="True"
+                     Background="Black"
+                     Foreground="Yellow"
+                     TextWrapping="Wrap"
+                     VerticalScrollBarVisibility="Visible" />
+
+        </Grid>
+    </GroupBox>
+</UserControl>
