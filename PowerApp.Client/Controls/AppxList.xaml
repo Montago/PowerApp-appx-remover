@@ -23,28 +23,36 @@
         </Grid.Resources>
 
         <Grid>
-            <StackPanel Height="30"
+            <StackPanel Height="35"
                         VerticalAlignment="Top"
+                        Background="Orange"
                         Orientation="Horizontal">
 
-                <CheckBox Margin="10,0,0,0"
+                <CheckBox Height="30"
+                          Margin="10,0,0,0"
                           Content="AllUsers"
                           IsChecked="{Binding ElementName=root, Path=Filter.AllUsers}" />
 
-                <CheckBox Margin="10,0,10,0"
+                <CheckBox Height="30"
+                          Margin="10,0,10,0"
                           Content="Removable"
                           IsChecked="{Binding ElementName=root, Path=Filter.Removable}" />
 
-                <Label>SignatureKind:</Label>
-                <ComboBox ItemsSource="{Binding Kinds, ElementName=root}" SelectedItem="{Binding ElementName=root, Path=Filter.Kind}" />
+                <Label Height="30" VerticalContentAlignment="Center">SignatureKind:</Label>
+                <ComboBox Width="70"
+                          Height="30"
+                          ItemsSource="{Binding Kinds, ElementName=root}"
+                          SelectedItem="{Binding ElementName=root, Path=Filter.Kind}" />
 
-                <Label>Name like:</Label>
-                <TextBox Width="100" Text="{Binding Filter.TextFilter, ElementName=root, UpdateSourceTrigger=PropertyChanged}" />
+                <Label Height="30" VerticalContentAlignment="Center">Name like:</Label>
+                <TextBox Width="100"
+                         Height="30"
+                         Text="{Binding Filter.TextFilter, ElementName=root, UpdateSourceTrigger=PropertyChanged}" />
 
 
             </StackPanel>
 
-            <ListView Margin="0,30,0,150" ItemsSource="{Binding Source={StaticResource SortedItems}}">
+            <ListView Margin="0,35,0,150" ItemsSource="{Binding Source={StaticResource SortedItems}}">
                 <ListView.View>
                     <GridView>
                         <GridViewColumn Width="80" Header="Uninstall">
@@ -71,7 +79,7 @@
                      VerticalAlignment="Bottom"
                      AcceptsReturn="True"
                      Background="Black"
-                     Foreground="Yellow"
+                     Foreground="Orange"
                      TextWrapping="Wrap"
                      VerticalScrollBarVisibility="Visible" />
 
