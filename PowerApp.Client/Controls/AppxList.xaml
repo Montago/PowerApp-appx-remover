@@ -62,14 +62,24 @@
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
-                        <GridViewColumn DisplayMemberBinding="{Binding Name}" Header="Name" />
+                        <GridViewColumn Width="300"
+                                        DisplayMemberBinding="{Binding Name}"
+                                        Header="Name" />
                         <GridViewColumn DisplayMemberBinding="{Binding Status}" Header="Status" />
                         <GridViewColumn DisplayMemberBinding="{Binding NonRemovable}" Header="NonRemovable" />
                         <GridViewColumn DisplayMemberBinding="{Binding SignatureKind}" Header="SignatureKind" />
-                        <GridViewColumn DisplayMemberBinding="{Binding Version}" Header="Version" />
-                        <GridViewColumn DisplayMemberBinding="{Binding InstallLocation}" Header="Install Location" />
-                        <GridViewColumn DisplayMemberBinding="{Binding Publisher}" Header="Publisher" />
-                        <GridViewColumn DisplayMemberBinding="{Binding PackageFullName}" Header="FullName" />
+                        <GridViewColumn Width="120"
+                                        DisplayMemberBinding="{Binding Version}"
+                                        Header="Version" />
+                        <GridViewColumn Width="100"
+                                        DisplayMemberBinding="{Binding PackageFullName}"
+                                        Header="FullName" />
+                        <GridViewColumn Width="100"
+                                        DisplayMemberBinding="{Binding InstallLocation}"
+                                        Header="Install Location" />
+                        <GridViewColumn Width="100"
+                                        DisplayMemberBinding="{Binding Publisher}"
+                                        Header="Publisher" />
                     </GridView>
                 </ListView.View>
             </ListView>
