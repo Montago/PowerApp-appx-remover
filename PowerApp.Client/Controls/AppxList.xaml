@@ -17,7 +17,7 @@
                                   Filter="CollectionViewSource_Filter"
                                   Source="{Binding ElementName=root, Path=AppxPackages}">
                 <CollectionViewSource.SortDescriptions>
-                    <scm:SortDescription Direction="Ascending" PropertyName="Name" />
+                    <scm:SortDescription Direction="Ascending" PropertyName="Package.Name" />
                 </CollectionViewSource.SortDescriptions>
             </CollectionViewSource>
         </Grid.Resources>
@@ -49,6 +49,13 @@
                          Height="30"
                          Text="{Binding Filter.TextFilter, ElementName=root, UpdateSourceTrigger=PropertyChanged}" />
 
+                <Button Height="30"
+                        Margin="10,0,0,0"
+                        Padding="10,0,10,0"
+                        Click="Button_Click"
+                        Content="Uninstall Selected"
+                        IsEnabled="{Binding CanExecuteUnInstall}" />
+
 
             </StackPanel>
 
@@ -58,27 +65,27 @@
                         <GridViewColumn Width="80" Header="Uninstall">
                             <GridViewColumn.CellTemplate>
                                 <DataTemplate>
-                                    <Button Click="UninstallPackage" Content="Remove" />
+                                    <CheckBox Content="Remove" IsChecked="{Binding Uninstall}" />
                                 </DataTemplate>
                             </GridViewColumn.CellTemplate>
                         </GridViewColumn>
                         <GridViewColumn Width="300"
-                                        DisplayMemberBinding="{Binding Name}"
+                                        DisplayMemberBinding="{Binding Package.Name}"
                                         Header="Name" />
-                        <GridViewColumn DisplayMemberBinding="{Binding Status}" Header="Status" />
-                        <GridViewColumn DisplayMemberBinding="{Binding NonRemovable}" Header="NonRemovable" />
-                        <GridViewColumn DisplayMemberBinding="{Binding SignatureKind}" Header="SignatureKind" />
+                        <GridViewColumn DisplayMemberBinding="{Binding Package.Status}" Header="Status" />
+                        <GridViewColumn DisplayMemberBinding="{Binding Package.NonRemovable}" Header="NonRemovable" />
+                        <GridViewColumn DisplayMemberBinding="{Binding Package.SignatureKind}" Header="SignatureKind" />
                         <GridViewColumn Width="120"
-                                        DisplayMemberBinding="{Binding Version}"
+                                        DisplayMemberBinding="{Binding Package.Version}"
                                         Header="Version" />
                         <GridViewColumn Width="100"
-                                        DisplayMemberBinding="{Binding PackageFullName}"
+                                        DisplayMemberBinding="{Binding Package.PackageFullName}"
                                         Header="FullName" />
                         <GridViewColumn Width="100"
-                                        DisplayMemberBinding="{Binding InstallLocation}"
+                                        DisplayMemberBinding="{Binding Package.InstallLocation}"
                                         Header="Install Location" />
                         <GridViewColumn Width="100"
-                                        DisplayMemberBinding="{Binding Publisher}"
+                                        DisplayMemberBinding="{Binding Package.Publisher}"
                                         Header="Publisher" />
                     </GridView>
                 </ListView.View>

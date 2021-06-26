@@ -16,12 +16,15 @@ using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
 using PostSharp.Patterns.Model;
+using PostSharp.Patterns.Xaml;
 
 namespace PowerApp.Client.Controls
 {
+    [NotifyPropertyChanged]
     public partial class AppxList : UserControl
     {
-        public ObservableCollection<PSObject> AppxPackages { get; set; } = new ObservableCollection<PSObject>();
+        [AggregateAllChanges]
+        public ObservableCollection<ListItem> AppxPackages { get; set; } = new ObservableCollection<ListItem>();
 
         public ObservableCollection<string> Kinds { get; set; } = new ObservableCollection<string>();
 
@@ -63,11 +66,16 @@ namespace PowerApp.Client.Controls
 
         private void CollectionViewSource_Filter(object sender, FilterEventArgs e)
         {
-            var item = (e.Item as PSObject) as dynamic;
+            var item = ((e.Item as ListItem) as dynamic).Package as dynamic;
 
             e.Accepted = (!Filter.Removable || (item.NonRemovable == false))
-                && (Filter.Kind == "*" || Filter.Kind == null || item.SignatureKind == Filter.Kind)
-                && (String.IsNullOrWhiteSpace(Filter.TextFilter) || (item.Name as string).ToLower().Contains(Filter.TextFilter.ToLower()));
+                &&
+                (Filter.Kind == "*" || Filter.Kind == null || item.SignatureKind == Filter.Kind)
+                &&
+                (
+                    String.IsNullOrWhiteSpace(Filter.TextFilter) ||
+                    (item.Name as string).ToLower().Contains(Filter.TextFilter.ToLower())
+                );
         }
 
         private void GetPackages()
@@ -89,33 +97,70 @@ namespace PowerApp.Client.Controls
                             Kinds.Add((package as dynamic).SignatureKind as string);
                         }
 
-                        AppxPackages.Add(package);
+                        var item = new ListItem { Package = package };
+
+                        (item as INotifyPropertyChanged).PropertyChanged += ListItem_PropertyChanged1;
+
+                        AppxPackages.Add(item);
                     });
                 }
             });
         }
 
-        private void UninstallPackage(object sender, RoutedEventArgs e)
+        private void ListItem_PropertyChanged1(object sender, PropertyChangedEventArgs e)
         {
-            Dispatcher.Invoke(() =>
-            {
-                tbErrorMessage.Text = "";
-            });
+            CanExecuteUnInstall = AppxPackages.Any(a => a.Uninstall);
+        }
 
-            string packageName = ((sender as Button).DataContext as dynamic).Name;
+        private bool UninstallPackage(PSObject AppxPackage)
+        {
+            string packageName = (AppxPackage as dynamic).Name;
             var allusers = Filter.AllUsers ? "-AllUsers" : "";
 
             try
             {
                 PowerShellWrapper.RunCommand($"Get-AppxPackage {packageName} {allusers} | Remove-AppxPackage");
 
-                GetPackages();
+                return true;
             }
             catch (Exception ex)
             {
-                tbErrorMessage.Text = ex.Message;
+                Dispatcher.Invoke(() =>
+                {
+                    tbErrorMessage.Text += ex.Message + "\n\n";
+                });
+
+                return false;
             }
         }
+
+        public bool CanExecuteUnInstall { get; set; }
+        
+
+        private void Button_Click(object sender, RoutedEventArgs e)
+        {
+            Dispatcher.Invoke(() =>
+            {
+                tbErrorMessage.Text = "";
+            });
+
+            foreach (var item in AppxPackages.Where(w => w.Uninstall).ToList())
+            {
+                if (UninstallPackage(item.Package))
+                {
+                    AppxPackages.Remove(item);
+                }
+            }
+        }
+    }
+
+    [NotifyPropertyChanged]
+    public class ListItem
+    {
+        public bool Uninstall { get; set; }
+
+        public PSObject Package { get; set; }
+
     }
 
     [NotifyPropertyChanged]
