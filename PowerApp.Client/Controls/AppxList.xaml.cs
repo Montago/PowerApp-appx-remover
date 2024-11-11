@@ -1,29 +1,39 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using PowerApp.Client.Helpers;
+using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
 using System.Linq;
 using System.Management.Automation;
-using System.Text;
 using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Data;
-using System.Windows.Documents;
 using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Navigation;
-using System.Windows.Shapes;
-using PostSharp.Patterns.Model;
-using PostSharp.Patterns.Xaml;
 
 namespace PowerApp.Client.Controls
 {
-    [NotifyPropertyChanged]
-    public partial class AppxList : UserControl
+    // https://mahapps.com/docs/styles/datagrid
+
+    public partial class AppxList : UserControl, INotifyPropertyChanged
     {
-        [AggregateAllChanges]
+        #region INotifyPropertyChanged
+
+        public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        public event PropertyChangedEventHandler? PropertyChanged;
+
+        #endregion
+
+        #region IsLoading INPC Property
+        private bool _IsLoading;
+
+        public bool IsLoading
+        {
+            get { return _IsLoading; }
+            set { _IsLoading = value; OnPropertyChanged(nameof(IsLoading)); }
+        }
+        #endregion
+
         public ObservableCollection<ListItem> AppxPackages { get; set; } = new ObservableCollection<ListItem>();
 
         public ObservableCollection<string> Kinds { get; set; } = new ObservableCollection<string>();
@@ -35,8 +45,6 @@ namespace PowerApp.Client.Controls
             InitializeComponent();
 
             Kinds.Add("*");
-
-            DataContext = this;
 
             GetPackages();
 
@@ -84,33 +92,67 @@ namespace PowerApp.Client.Controls
 
             Task.Run(() =>
             {
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    IsLoading = true;
+                });
+
                 var allusers = Filter.AllUsers ? " -AllUsers" : "";
 
-                var Packages = PowerShellWrapper.RunCommand($"Get-AppxPackage{allusers}");
-
-                foreach (var package in Packages)
+                try
                 {
-                    Dispatcher.Invoke(() =>
+                    var Packages = PowerShellWrapper.RunCommand($"Get-AppxPackage{allusers}");
+
+                    foreach (var package in Packages)
                     {
-                        if (!Kinds.Contains((package as dynamic).SignatureKind as string))
+                        Dispatcher.Invoke(() =>
                         {
-                            Kinds.Add((package as dynamic).SignatureKind as string);
-                        }
+                            if (!Kinds.Contains((package as dynamic).SignatureKind as string))
+                            {
+                                Kinds.Add((package as dynamic).SignatureKind as string);
+                            }
 
-                        var item = new ListItem { Package = package };
+                            var item = new ListItem { Package = package };
 
-                        (item as INotifyPropertyChanged).PropertyChanged += ListItem_PropertyChanged1;
-
-                        AppxPackages.Add(item);
-                    });
+                            AppxPackages.Add(item);
+                        });
+                    }
                 }
+                catch (Exception ex)
+                {
+                    MessageBox.Show(ex.Message);
+                }
+
+                Application.Current.Dispatcher.Invoke(() =>
+                {
+                    IsLoading = false;
+                });
             });
         }
 
-        private void ListItem_PropertyChanged1(object sender, PropertyChangedEventArgs e)
+        #region DeleteSelectedCommand
+        private ICommand _deleteselected;
+
+        public ICommand DeleteSelectedCommand => _deleteselected = new RelayCommand(ExecuteDeleteSelected, CanDeleteSelected);
+
+        public bool CanDeleteSelected() => AppxPackages.Any(a => a.Uninstall);
+
+        private void ExecuteDeleteSelected(object obj)
         {
-            CanExecuteUnInstall = AppxPackages.Any(a => a.Uninstall);
+            Dispatcher.Invoke(() =>
+            {
+                tbErrorMessage.Text = "";
+            });
+
+            foreach (var item in AppxPackages.Where(w => w.Uninstall).ToList())
+            {
+                if (UninstallPackage(item.Package))
+                {
+                    AppxPackages.Remove(item);
+                }
+            }
         }
+        #endregion
 
         private bool UninstallPackage(PSObject AppxPackage)
         {
@@ -134,44 +176,116 @@ namespace PowerApp.Client.Controls
             }
         }
 
-        public bool CanExecuteUnInstall { get; set; }
-        
+        //private void OpenFileLocation(string filePath)
+        //{
+        //    if (Directory.Exists(filePath))
+        //    {
+        //        Process.Start("explorer.exe", $"/select,\"{filePath}\"");
+        //    }
+        //    else
+        //    {
+        //        MessageBox.Show("File path not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+        //    }
+        //}
 
-        private void Button_Click(object sender, RoutedEventArgs e)
+        //private void DataGridRow_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+        //{
+        //    if (sender is DataGridRow row && row.DataContext is ListItem item)
+        //    {
+        //        ContextMenu contextMenu = new ContextMenu();
+
+        //        MenuItem openFileMenuItem = new MenuItem
+        //        {
+        //            Header = "Open File Location"
+        //        };
+        //        openFileMenuItem.Click += (s, args) => OpenFileLocation(((dynamic)item.Package).InstallLocation);
+
+        //        contextMenu.Items.Add(openFileMenuItem);
+        //        row.ContextMenu = contextMenu;
+        //        contextMenu.IsOpen = true;
+        //    }
+        //}
+    }
+
+    public class ListItem : INotifyPropertyChanged
+    {
+        #region INotifyPropertyChanged
+
+        public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+
+        public event PropertyChangedEventHandler PropertyChanged;
+
+        #endregion
+
+        #region Uninstall INPC Property
+        private bool _uninstall;
+
+        public bool Uninstall
         {
-            Dispatcher.Invoke(() =>
-            {
-                tbErrorMessage.Text = "";
-            });
-
-            foreach (var item in AppxPackages.Where(w => w.Uninstall).ToList())
-            {
-                if (UninstallPackage(item.Package))
-                {
-                    AppxPackages.Remove(item);
-                }
-            }
+            get { return _uninstall; }
+            set { _uninstall = value; OnPropertyChanged("Uninstall"); }
         }
+        #endregion
+
+        #region Package INPC Property
+        private PSObject _package;
+
+        public PSObject Package
+        {
+            get { return _package; }
+            set { _package = value; OnPropertyChanged("Package"); }
+        }
+        #endregion
     }
 
-    [NotifyPropertyChanged]
-    public class ListItem
+    public class AppxFilter : INotifyPropertyChanged
     {
-        public bool Uninstall { get; set; }
+        #region INotifyPropertyChanged
 
-        public PSObject Package { get; set; }
+        public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-    }
+        public event PropertyChangedEventHandler PropertyChanged;
 
-    [NotifyPropertyChanged]
-    public class AppxFilter
-    {
-        public bool Removable { get; set; }
+        #endregion
 
-        public string Kind { get; set; }
+        #region Removable INPC Property
+        private bool _removable;
 
-        public string TextFilter { get; set; }
+        public bool Removable
+        {
+            get { return _removable; }
+            set { _removable = value; OnPropertyChanged("Removable"); }
+        }
+        #endregion
 
-        public bool AllUsers { get; set; }
+        #region Kind INPC Property
+        private string _kind;
+
+        public string Kind
+        {
+            get { return _kind; }
+            set { _kind = value; OnPropertyChanged("Kind"); }
+        }
+        #endregion
+
+        #region TextFilter INPC Property
+        private string _textfilter;
+
+        public string TextFilter
+        {
+            get { return _textfilter; }
+            set { _textfilter = value; OnPropertyChanged("TextFilter"); }
+        }
+        #endregion
+
+        #region AllUsers INPC Property
+        private bool _allusers;
+
+        public bool AllUsers
+        {
+            get { return _allusers; }
+            set { _allusers = value; OnPropertyChanged("AllUsers"); }
+        }
+        #endregion
     }
 }

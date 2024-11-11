@@ -3,19 +3,18 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:local="clr-namespace:PowerApp.Client.Controls"
+             xmlns:mah="http://metro.mahapps.com/winfx/xaml/controls"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
              x:Name="root"
              d:DataContext="{d:DesignInstance Type=local:AppxList}"
-             d:DesignHeight="450"
-             d:DesignWidth="800"
+             d:DesignHeight="400"
+             d:DesignWidth="1100"
              Background="White"
              mc:Ignorable="d">
-    <Grid x:Name="gbRoot">
+    <Grid x:Name="gbRoot" DataContext="{Binding ElementName=root}">
         <Grid.Resources>
-            <CollectionViewSource x:Key="SortedItems"
-                                  Filter="CollectionViewSource_Filter"
-                                  Source="{Binding ElementName=root, Path=AppxPackages}">
+            <CollectionViewSource x:Key="SortedItems" Filter="CollectionViewSource_Filter" Source="{Binding AppxPackages}">
                 <CollectionViewSource.SortDescriptions>
                     <scm:SortDescription Direction="Ascending" PropertyName="Package.Name" />
                 </CollectionViewSource.SortDescriptions>
@@ -23,82 +22,73 @@
         </Grid.Resources>
 
         <Grid>
-            <StackPanel Height="35"
-                        VerticalAlignment="Top"
-                        Background="Orange"
-                        Orientation="Horizontal">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="40" />
+                <RowDefinition />
+                <RowDefinition Height="150" />
+            </Grid.RowDefinitions>
+
+            <StackPanel Grid.Row="0" Background="{DynamicResource MahApps.Brushes.Accent}" Orientation="Horizontal">
 
                 <CheckBox Height="30"
                           Margin="10,0,0,0"
                           Content="AllUsers"
-                          IsChecked="{Binding ElementName=root, Path=Filter.AllUsers}" />
+                          IsChecked="{Binding Filter.AllUsers}" />
 
                 <CheckBox Height="30"
                           Margin="10,0,10,0"
                           Content="Removable"
-                          IsChecked="{Binding ElementName=root, Path=Filter.Removable}" />
+                          IsChecked="{Binding Filter.Removable}" />
 
-                <Label Height="30" VerticalContentAlignment="Center">SignatureKind:</Label>
+                <Label Height="30" VerticalContentAlignment="Center" Content="SignatureKind:" />
                 <ComboBox Width="70"
                           Height="30"
-                          ItemsSource="{Binding Kinds, ElementName=root}"
-                          SelectedItem="{Binding ElementName=root, Path=Filter.Kind}" />
+                          ItemsSource="{Binding Kinds}"
+                          SelectedItem="{Binding Path=Filter.Kind}" />
 
-                <Label Height="30" VerticalContentAlignment="Center">Name like:</Label>
-                <TextBox Width="100"
-                         Height="30"
-                         Text="{Binding Filter.TextFilter, ElementName=root, UpdateSourceTrigger=PropertyChanged}" />
+                <Label Height="30" VerticalContentAlignment="Center" Content="Name like:" />
+                <TextBox Width="200" Height="30" Text="{Binding Filter.TextFilter, UpdateSourceTrigger=PropertyChanged}" />
 
                 <Button Height="30"
                         Margin="10,0,0,0"
                         Padding="10,0,10,0"
-                        Click="Button_Click"
-                        Content="Uninstall Selected"
-                        IsEnabled="{Binding CanExecuteUnInstall}" />
-
+                        Command="{Binding DeleteSelectedCommand}"
+                        Content="Uninstall Selected" />
 
             </StackPanel>
 
-            <ListView Margin="0,35,0,150" ItemsSource="{Binding Source={StaticResource SortedItems}}">
-                <ListView.View>
-                    <GridView>
-                        <GridViewColumn Width="80" Header="Uninstall">
-                            <GridViewColumn.CellTemplate>
-                                <DataTemplate>
-                                    <CheckBox Content="Remove" IsChecked="{Binding Uninstall}" />
-                                </DataTemplate>
-                            </GridViewColumn.CellTemplate>
-                        </GridViewColumn>
-                        <GridViewColumn Width="300"
-                                        DisplayMemberBinding="{Binding Package.Name}"
-                                        Header="Name" />
-                        <GridViewColumn DisplayMemberBinding="{Binding Package.Status}" Header="Status" />
-                        <GridViewColumn DisplayMemberBinding="{Binding Package.NonRemovable}" Header="NonRemovable" />
-                        <GridViewColumn DisplayMemberBinding="{Binding Package.SignatureKind}" Header="SignatureKind" />
-                        <GridViewColumn Width="120"
-                                        DisplayMemberBinding="{Binding Package.Version}"
-                                        Header="Version" />
-                        <GridViewColumn Width="100"
-                                        DisplayMemberBinding="{Binding Package.PackageFullName}"
-                                        Header="FullName" />
-                        <GridViewColumn Width="100"
-                                        DisplayMemberBinding="{Binding Package.InstallLocation}"
-                                        Header="Install Location" />
-                        <GridViewColumn Width="100"
-                                        DisplayMemberBinding="{Binding Package.Publisher}"
-                                        Header="Publisher" />
-                    </GridView>
-                </ListView.View>
-            </ListView>
+            <DataGrid Grid.Row="1" AutoGenerateColumns="False" ItemsSource="{Binding Source={StaticResource SortedItems}}">
+                <DataGrid.Columns>
+                    <DataGridCheckBoxColumn Width="80" Binding="{Binding Uninstall}" Header="Uninstall" />
+                    <DataGridTextColumn Width="300" Binding="{Binding Package.Name}" Header="Name" />
+                    <DataGridTextColumn Binding="{Binding Package.Status}" Header="Status" />
+                    <DataGridTextColumn Binding="{Binding Package.NonRemovable}" Header="NonRemovable" />
+                    <DataGridTextColumn Binding="{Binding Package.SignatureKind}" Header="SignatureKind" />
+                    <DataGridTextColumn Width="120" Binding="{Binding Package.Version}" Header="Version" />
+                    <DataGridTextColumn Width="*" Binding="{Binding Package.PackageFullName}" Header="FullName" />
+                    <DataGridTextColumn Width="*" Binding="{Binding Package.InstallLocation}" Header="Install Location" />
+                    <DataGridTextColumn Width="*" Binding="{Binding Package.Publisher}" Header="Publisher" />
+                </DataGrid.Columns>
 
-            <TextBox Name="tbErrorMessage"
-                     Height="150"
-                     VerticalAlignment="Bottom"
-                     AcceptsReturn="True"
-                     Background="Black"
-                     Foreground="Orange"
-                     TextWrapping="Wrap"
-                     VerticalScrollBarVisibility="Visible" />
+                <!--<DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <EventSetter Event="MouseRightButtonDown" Handler="DataGridRow_MouseRightButtonDown" />
+                    </Style>
+                </DataGrid.RowStyle>-->
+            </DataGrid>
+
+            <mah:ProgressRing Grid.Row="1" Foreground="{DynamicResource AccentColorBrush}" IsActive="{Binding IsLoading}" />
+
+            <GroupBox Grid.Row="2" Padding="0" Header="Console Log">
+                <TextBox Name="tbErrorMessage"
+                         Margin="0"
+                         Padding="0"
+                         AcceptsReturn="True"
+                         Background="Black"
+                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
+                         TextWrapping="Wrap"
+                         VerticalScrollBarVisibility="Visible" />
+            </GroupBox>
 
         </Grid>
     </Grid>
