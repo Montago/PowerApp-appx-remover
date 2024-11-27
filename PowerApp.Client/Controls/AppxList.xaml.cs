@@ -12,280 +12,287 @@ using System.Windows.Input;
 
 namespace PowerApp.Client.Controls
 {
-    // https://mahapps.com/docs/styles/datagrid
+	// https://mahapps.com/docs/styles/datagrid
 
-    public partial class AppxList : UserControl, INotifyPropertyChanged
-    {
-        #region INotifyPropertyChanged
+	public partial class AppxList : UserControl, INotifyPropertyChanged
+	{
+		#region INotifyPropertyChanged
 
-        public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+		public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        public event PropertyChangedEventHandler? PropertyChanged;
+		public event PropertyChangedEventHandler? PropertyChanged;
 
-        #endregion
+		#endregion
 
-        #region IsLoading INPC Property
-        private bool _IsLoading;
+		#region IsLoading INPC Property
+		private bool _IsLoading;
 
-        public bool IsLoading
-        {
-            get { return _IsLoading; }
-            set { _IsLoading = value; OnPropertyChanged(nameof(IsLoading)); }
-        }
-        #endregion
+		public bool IsLoading
+		{
+			get { return _IsLoading; }
+			set { _IsLoading = value; OnPropertyChanged(nameof(IsLoading)); }
+		}
+		#endregion
 
-        public ObservableCollection<ListItem> AppxPackages { get; set; } = new ObservableCollection<ListItem>();
+		public ObservableCollection<ListItem> AppxPackages { get; set; } = new ObservableCollection<ListItem>();
 
-        public ObservableCollection<string> Kinds { get; set; } = new ObservableCollection<string>();
+		public ObservableCollection<string> Kinds { get; set; } = new ObservableCollection<string>();
 
-        public AppxFilter Filter { get; set; } = new AppxFilter();
+		public AppxFilter Filter { get; set; } = new AppxFilter();
 
-        public AppxList()
-        {
-            InitializeComponent();
+		public AppxList()
+		{
+			InitializeComponent();
 
-            Kinds.Add("*");
+			Kinds.Add("*");
 
-            GetPackages();
+			GetPackages();
 
-            (Filter as INotifyPropertyChanged).PropertyChanged += AppxList_PropertyChanged;
-        }
+			(Filter as INotifyPropertyChanged).PropertyChanged += AppxList_PropertyChanged;
+		}
 
-        private void AppxList_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            if (e.PropertyName == "AllUsers")
-            {
-                GetPackages();
-            }
-            else
-            {
-                var sorting = (CollectionViewSource)gbRoot.Resources["SortedItems"];
-                sorting.View.Refresh();
-            }
-        }
+		private void AppxList_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			if (e.PropertyName == "AllUsers")
+			{
+				GetPackages();
+			}
+			else
+			{
+				var sorting = (CollectionViewSource)gbRoot.Resources["SortedItems"];
+				sorting.View.Refresh();
+			}
+		}
 
-        public void ResetSorting()
-        {
-            var sorting = (CollectionViewSource)gbRoot.Resources["SortedItems"];
+		public void ResetSorting()
+		{
+			var sorting = (CollectionViewSource)gbRoot.Resources["SortedItems"];
 
-            sorting.SortDescriptions.RemoveAt(0);
-            sorting.SortDescriptions.Add(new SortDescription("ModelNavn", ListSortDirection.Ascending));
-        }
+			sorting.SortDescriptions.RemoveAt(0);
+			sorting.SortDescriptions.Add(new SortDescription("ModelNavn", ListSortDirection.Ascending));
+		}
 
-        private void CollectionViewSource_Filter(object sender, FilterEventArgs e)
-        {
-            var item = ((e.Item as ListItem) as dynamic).Package as dynamic;
+		private void CollectionViewSource_Filter(object sender, FilterEventArgs e)
+		{
+			var item = ((e.Item as ListItem) as dynamic).Package as dynamic;
 
-            e.Accepted = (!Filter.Removable || (item.NonRemovable == false))
-                &&
-                (Filter.Kind == "*" || Filter.Kind == null || item.SignatureKind == Filter.Kind)
-                &&
-                (
-                    String.IsNullOrWhiteSpace(Filter.TextFilter) ||
-                    (item.Name as string).ToLower().Contains(Filter.TextFilter.ToLower())
-                );
-        }
+			e.Accepted = (!Filter.Removable || (item.NonRemovable == false))
+				&&
+				(Filter.Kind == "*" || Filter.Kind == null || item.SignatureKind == Filter.Kind)
+				&&
+				(
+					String.IsNullOrWhiteSpace(Filter.TextFilter) ||
+					(item.Name as string).ToLower().Contains(Filter.TextFilter.ToLower())
+				);
+		}
 
-        private void GetPackages()
-        {
-            AppxPackages.Clear();
+		private void GetPackages()
+		{
+			AppxPackages.Clear();
 
-            Task.Run(() =>
-            {
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    IsLoading = true;
-                });
+			Task.Run(() =>
+			{
+				Application.Current.Dispatcher.Invoke(() =>
+				{
+					IsLoading = true;
+				});
 
-                var allusers = Filter.AllUsers ? " -AllUsers" : "";
+				var allusers = Filter.AllUsers ? " -AllUsers" : "";
 
-                try
-                {
-                    var Packages = PowerShellWrapper.RunCommand($"Get-AppxPackage{allusers}");
+				try
+				{
+					var Packages = PowerShellWrapper.RunCommand($"Get-AppxPackage{allusers}");
 
-                    foreach (var package in Packages)
-                    {
-                        Dispatcher.Invoke(() =>
-                        {
-                            if (!Kinds.Contains((package as dynamic).SignatureKind as string))
-                            {
-                                Kinds.Add((package as dynamic).SignatureKind as string);
-                            }
+					foreach (var package in Packages)
+					{
+						Dispatcher.Invoke(() =>
+						{
+							if (!Kinds.Contains((package as dynamic).SignatureKind as string))
+							{
+								Kinds.Add((package as dynamic).SignatureKind as string);
+							}
 
-                            var item = new ListItem { Package = package };
+							var item = new ListItem { Package = package };
 
-                            AppxPackages.Add(item);
-                        });
-                    }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
+							//item.PropertyChanged += (s, e) => CommandManager.InvalidateRequerySuggested();
 
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    IsLoading = false;
-                });
-            });
-        }
+							AppxPackages.Add(item);
+						});
+					}
+				}
+				catch (Exception ex)
+				{
+					MessageBox.Show(ex.Message);
+				}
 
-        #region DeleteSelectedCommand
-        private ICommand _deleteselected;
+				Application.Current.Dispatcher.Invoke(() =>
+				{
+					IsLoading = false;
+				});
+			});
+		}
 
-        public ICommand DeleteSelectedCommand => _deleteselected = new RelayCommand(ExecuteDeleteSelected, CanDeleteSelected);
+		private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
+		{
+			throw new NotImplementedException();
+		}
 
-        public bool CanDeleteSelected() => AppxPackages.Any(a => a.Uninstall);
+		#region DeleteSelectedCommand
+		private ICommand _deleteselected;
 
-        private void ExecuteDeleteSelected(object obj)
-        {
-            Dispatcher.Invoke(() =>
-            {
-                tbErrorMessage.Text = "";
-            });
+		public ICommand DeleteSelectedCommand => _deleteselected = new RelayCommand(ExecuteDeleteSelected, CanDeleteSelected);
 
-            foreach (var item in AppxPackages.Where(w => w.Uninstall).ToList())
-            {
-                if (UninstallPackage(item.Package))
-                {
-                    AppxPackages.Remove(item);
-                }
-            }
-        }
-        #endregion
+		public bool CanDeleteSelected() => AppxPackages.Any(a => a.Uninstall);
 
-        private bool UninstallPackage(PSObject AppxPackage)
-        {
-            string packageName = (AppxPackage as dynamic).Name;
-            var allusers = Filter.AllUsers ? "-AllUsers" : "";
+		private void ExecuteDeleteSelected(object obj)
+		{
+			Dispatcher.Invoke(() =>
+			{
+				tbErrorMessage.Text = "";
+			});
 
-            try
-            {
-                PowerShellWrapper.RunCommand($"Get-AppxPackage {packageName} {allusers} | Remove-AppxPackage");
+			foreach (var item in AppxPackages.Where(w => w.Uninstall).ToList())
+			{
+				if (UninstallPackage(item.Package))
+				{
+					AppxPackages.Remove(item);
+				}
+			}
+		}
+		#endregion
 
-                return true;
-            }
-            catch (Exception ex)
-            {
-                Dispatcher.Invoke(() =>
-                {
-                    tbErrorMessage.Text += ex.Message + "\n\n";
-                });
+		private bool UninstallPackage(PSObject AppxPackage)
+		{
+			string packageName = (AppxPackage as dynamic).Name;
+			var allusers = Filter.AllUsers ? "-AllUsers" : "";
 
-                return false;
-            }
-        }
+			try
+			{
+				PowerShellWrapper.RunCommand($"Get-AppxPackage {packageName} {allusers} | Remove-AppxPackage");
 
-        //private void OpenFileLocation(string filePath)
-        //{
-        //    if (Directory.Exists(filePath))
-        //    {
-        //        Process.Start("explorer.exe", $"/select,\"{filePath}\"");
-        //    }
-        //    else
-        //    {
-        //        MessageBox.Show("File path not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
-        //    }
-        //}
+				return true;
+			}
+			catch (Exception ex)
+			{
+				Dispatcher.Invoke(() =>
+				{
+					tbErrorMessage.Text += ex.Message + "\n\n";
+				});
 
-        //private void DataGridRow_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
-        //{
-        //    if (sender is DataGridRow row && row.DataContext is ListItem item)
-        //    {
-        //        ContextMenu contextMenu = new ContextMenu();
+				return false;
+			}
+		}
 
-        //        MenuItem openFileMenuItem = new MenuItem
-        //        {
-        //            Header = "Open File Location"
-        //        };
-        //        openFileMenuItem.Click += (s, args) => OpenFileLocation(((dynamic)item.Package).InstallLocation);
+		//private void OpenFileLocation(string filePath)
+		//{
+		//    if (Directory.Exists(filePath))
+		//    {
+		//        Process.Start("explorer.exe", $"/select,\"{filePath}\"");
+		//    }
+		//    else
+		//    {
+		//        MessageBox.Show("File path not found.", "Error", MessageBoxButton.OK, MessageBoxImage.Error);
+		//    }
+		//}
 
-        //        contextMenu.Items.Add(openFileMenuItem);
-        //        row.ContextMenu = contextMenu;
-        //        contextMenu.IsOpen = true;
-        //    }
-        //}
-    }
+		//private void DataGridRow_MouseRightButtonDown(object sender, MouseButtonEventArgs e)
+		//{
+		//    if (sender is DataGridRow row && row.DataContext is ListItem item)
+		//    {
+		//        ContextMenu contextMenu = new ContextMenu();
 
-    public class ListItem : INotifyPropertyChanged
-    {
-        #region INotifyPropertyChanged
+		//        MenuItem openFileMenuItem = new MenuItem
+		//        {
+		//            Header = "Open File Location"
+		//        };
+		//        openFileMenuItem.Click += (s, args) => OpenFileLocation(((dynamic)item.Package).InstallLocation);
 
-        public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+		//        contextMenu.Items.Add(openFileMenuItem);
+		//        row.ContextMenu = contextMenu;
+		//        contextMenu.IsOpen = true;
+		//    }
+		//}
+	}
 
-        public event PropertyChangedEventHandler PropertyChanged;
+	public class ListItem : INotifyPropertyChanged
+	{
+		#region INotifyPropertyChanged
 
-        #endregion
+		public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        #region Uninstall INPC Property
-        private bool _uninstall;
+		public event PropertyChangedEventHandler PropertyChanged;
 
-        public bool Uninstall
-        {
-            get { return _uninstall; }
-            set { _uninstall = value; OnPropertyChanged("Uninstall"); }
-        }
-        #endregion
+		#endregion
 
-        #region Package INPC Property
-        private PSObject _package;
+		#region Uninstall INPC Property
+		private bool _uninstall;
 
-        public PSObject Package
-        {
-            get { return _package; }
-            set { _package = value; OnPropertyChanged("Package"); }
-        }
-        #endregion
-    }
+		public bool Uninstall
+		{
+			get { return _uninstall; }
+			set { _uninstall = value; OnPropertyChanged("Uninstall"); }
+		}
+		#endregion
 
-    public class AppxFilter : INotifyPropertyChanged
-    {
-        #region INotifyPropertyChanged
+		#region Package INPC Property
+		private PSObject _package;
 
-        public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
+		public PSObject Package
+		{
+			get { return _package; }
+			set { _package = value; OnPropertyChanged("Package"); }
+		}
+		#endregion
+	}
 
-        public event PropertyChangedEventHandler PropertyChanged;
+	public class AppxFilter : INotifyPropertyChanged
+	{
+		#region INotifyPropertyChanged
 
-        #endregion
+		public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
 
-        #region Removable INPC Property
-        private bool _removable;
+		public event PropertyChangedEventHandler PropertyChanged;
 
-        public bool Removable
-        {
-            get { return _removable; }
-            set { _removable = value; OnPropertyChanged("Removable"); }
-        }
-        #endregion
+		#endregion
 
-        #region Kind INPC Property
-        private string _kind;
+		#region Removable INPC Property
+		private bool _removable;
 
-        public string Kind
-        {
-            get { return _kind; }
-            set { _kind = value; OnPropertyChanged("Kind"); }
-        }
-        #endregion
+		public bool Removable
+		{
+			get { return _removable; }
+			set { _removable = value; OnPropertyChanged("Removable"); }
+		}
+		#endregion
 
-        #region TextFilter INPC Property
-        private string _textfilter;
+		#region Kind INPC Property
+		private string _kind;
 
-        public string TextFilter
-        {
-            get { return _textfilter; }
-            set { _textfilter = value; OnPropertyChanged("TextFilter"); }
-        }
-        #endregion
+		public string Kind
+		{
+			get { return _kind; }
+			set { _kind = value; OnPropertyChanged("Kind"); }
+		}
+		#endregion
 
-        #region AllUsers INPC Property
-        private bool _allusers;
+		#region TextFilter INPC Property
+		private string _textfilter;
 
-        public bool AllUsers
-        {
-            get { return _allusers; }
-            set { _allusers = value; OnPropertyChanged("AllUsers"); }
-        }
-        #endregion
-    }
+		public string TextFilter
+		{
+			get { return _textfilter; }
+			set { _textfilter = value; OnPropertyChanged("TextFilter"); }
+		}
+		#endregion
+
+		#region AllUsers INPC Property
+		private bool _allusers;
+
+		public bool AllUsers
+		{
+			get { return _allusers; }
+			set { _allusers = value; OnPropertyChanged("AllUsers"); }
+		}
+		#endregion
+	}
 }
