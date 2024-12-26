@@ -14,7 +14,9 @@
              mc:Ignorable="d">
     <Grid x:Name="gbRoot" DataContext="{Binding ElementName=root}">
         <Grid.Resources>
-            <CollectionViewSource x:Key="SortedItems" Filter="CollectionViewSource_Filter" Source="{Binding AppxPackages}">
+            <CollectionViewSource x:Key="SortedItems"
+                                  Filter="CollectionViewSource_Filter"
+                                  Source="{Binding AppxPackages}">
                 <CollectionViewSource.SortDescriptions>
                     <scm:SortDescription Direction="Ascending" PropertyName="Package.Name" />
                 </CollectionViewSource.SortDescriptions>
@@ -28,7 +30,9 @@
                 <RowDefinition Height="150" />
             </Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0" Background="{DynamicResource MahApps.Brushes.Accent}" Orientation="Horizontal">
+            <StackPanel Grid.Row="0"
+                        Background="{DynamicResource MahApps.Brushes.Accent}"
+                        Orientation="Horizontal">
 
                 <CheckBox Height="30"
                           Margin="10,0,0,0"
@@ -40,14 +44,20 @@
                           Content="Removable"
                           IsChecked="{Binding Filter.Removable}" />
 
-                <Label Height="30" VerticalContentAlignment="Center" Content="SignatureKind:" />
+                <Label Height="30"
+                       VerticalContentAlignment="Center"
+                       Content="SignatureKind:" />
                 <ComboBox Width="70"
                           Height="30"
                           ItemsSource="{Binding Kinds}"
                           SelectedItem="{Binding Path=Filter.Kind}" />
 
-                <Label Height="30" VerticalContentAlignment="Center" Content="Name like:" />
-                <TextBox Width="200" Height="30" Text="{Binding Filter.TextFilter, UpdateSourceTrigger=PropertyChanged}" />
+                <Label Height="30"
+                       VerticalContentAlignment="Center"
+                       Content="Name like:" />
+                <TextBox Width="200"
+                         Height="30"
+                         Text="{Binding Filter.TextFilter, UpdateSourceTrigger=PropertyChanged}" />
 
                 <Button Height="30"
                         Margin="10,0,0,0"
@@ -57,29 +67,42 @@
 
             </StackPanel>
 
-            <DataGrid Grid.Row="1" AutoGenerateColumns="False" ItemsSource="{Binding Source={StaticResource SortedItems}}">
+            <DataGrid Grid.Row="1"
+                      AutoGenerateColumns="False"
+                      CanUserAddRows="False"
+                      ItemsSource="{Binding Source={StaticResource SortedItems}}">
                 <DataGrid.Columns>
-                    <DataGridCheckBoxColumn Width="80" Binding="{Binding Uninstall}" Header="Uninstall" />
-                    <DataGridTextColumn Width="300" Binding="{Binding Package.Name}" Header="Name" />
+                    <DataGridCheckBoxColumn Width="80"
+                                            Binding="{Binding Uninstall}"
+                                            Header="Uninstall" />
+                    <DataGridTextColumn Width="300"
+                                        Binding="{Binding Package.Name}"
+                                        Header="Name" />
                     <DataGridTextColumn Binding="{Binding Package.Status}" Header="Status" />
                     <DataGridTextColumn Binding="{Binding Package.NonRemovable}" Header="NonRemovable" />
                     <DataGridTextColumn Binding="{Binding Package.SignatureKind}" Header="SignatureKind" />
-                    <DataGridTextColumn Width="120" Binding="{Binding Package.Version}" Header="Version" />
-                    <DataGridTextColumn Width="*" Binding="{Binding Package.PackageFullName}" Header="FullName" />
-                    <DataGridTextColumn Width="*" Binding="{Binding Package.InstallLocation}" Header="Install Location" />
-                    <DataGridTextColumn Width="*" Binding="{Binding Package.Publisher}" Header="Publisher" />
+                    <DataGridTextColumn Width="120"
+                                        Binding="{Binding Package.Version}"
+                                        Header="Version" />
+                    <DataGridTextColumn Width="*"
+                                        Binding="{Binding Package.PackageFullName}"
+                                        Header="FullName" />
+                    <DataGridTextColumn Width="*"
+                                        Binding="{Binding Package.InstallLocation}"
+                                        Header="Install Location" />
+                    <DataGridTextColumn Width="*"
+                                        Binding="{Binding Package.Publisher}"
+                                        Header="Publisher" />
                 </DataGrid.Columns>
-
-                <!--<DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <EventSetter Event="MouseRightButtonDown" Handler="DataGridRow_MouseRightButtonDown" />
-                    </Style>
-                </DataGrid.RowStyle>-->
             </DataGrid>
 
-            <mah:ProgressRing Grid.Row="1" Foreground="{DynamicResource AccentColorBrush}" IsActive="{Binding IsLoading}" />
+            <mah:ProgressRing Grid.Row="1"
+                              Foreground="{DynamicResource AccentColorBrush}"
+                              IsActive="{Binding IsLoading}" />
 
-            <GroupBox Grid.Row="2" Padding="0" Header="Console Log">
+            <GroupBox Grid.Row="2"
+                      Padding="0"
+                      Header="Console Log">
                 <TextBox Name="tbErrorMessage"
                          Margin="0"
                          Padding="0"

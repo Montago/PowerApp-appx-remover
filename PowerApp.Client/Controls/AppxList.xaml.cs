@@ -76,14 +76,21 @@ namespace PowerApp.Client.Controls
         {
             var item = ((e.Item as ListItem) as dynamic).Package as dynamic;
 
-            e.Accepted = (!Filter.Removable || (item.NonRemovable == false))
-                &&
-                (Filter.Kind == "*" || Filter.Kind == null || item.SignatureKind == Filter.Kind)
-                &&
-                (
-                    String.IsNullOrWhiteSpace(Filter.TextFilter) ||
-                    (item.Name as string).ToLower().Contains(Filter.TextFilter.ToLower())
-                );
+            if (item == null)
+            {
+                e.Accepted = false;
+            }
+            else
+            {
+                e.Accepted = (!Filter.Removable || (item.NonRemovable == false))
+                    &&
+                    (Filter.Kind == "*" || Filter.Kind == null || item.SignatureKind == Filter.Kind)
+                    &&
+                    (
+                        String.IsNullOrWhiteSpace(Filter.TextFilter) ||
+                        (item.Name as string).ToLower().Contains(Filter.TextFilter.ToLower())
+                    );
+            }
         }
 
         private void GetPackages()
@@ -113,7 +120,6 @@ namespace PowerApp.Client.Controls
                             }
 
                             var item = new ListItem { Package = package };
-
                             AppxPackages.Add(item);
                         });
                     }
