@@ -12,107 +12,132 @@
              d:DesignWidth="1100"
              Background="White"
              mc:Ignorable="d">
-    <Grid x:Name="gbRoot" DataContext="{Binding ElementName=root}">
-        <Grid.Resources>
-            <CollectionViewSource x:Key="SortedItems"
-                                  Filter="CollectionViewSource_Filter"
-                                  Source="{Binding AppxPackages}">
-                <CollectionViewSource.SortDescriptions>
-                    <scm:SortDescription Direction="Ascending" PropertyName="Package.Name" />
-                </CollectionViewSource.SortDescriptions>
-            </CollectionViewSource>
-        </Grid.Resources>
+	<Grid x:Name="gbRoot" DataContext="{Binding ElementName=root}">
+		<Grid.Resources>
+			<CollectionViewSource x:Key="SortedItems"
+			                      Filter="CollectionViewSource_Filter"
+			                      Source="{Binding AppxPackages}">
+				<CollectionViewSource.SortDescriptions>
+					<scm:SortDescription Direction="Ascending" PropertyName="Package.Name" />
+				</CollectionViewSource.SortDescriptions>
+			</CollectionViewSource>
+		</Grid.Resources>
 
-        <Grid>
-            <Grid.RowDefinitions>
-                <RowDefinition Height="40" />
-                <RowDefinition />
-                <RowDefinition Height="150" />
-            </Grid.RowDefinitions>
+		<Grid>
+			<Grid.RowDefinitions>
+				<RowDefinition Height="40" />
+				<RowDefinition />
+				<RowDefinition Height="150" />
+			</Grid.RowDefinitions>
 
-            <StackPanel Grid.Row="0"
-                        Background="{DynamicResource MahApps.Brushes.Accent}"
-                        Orientation="Horizontal">
+			<StackPanel Grid.Row="0"
+			            Background="{DynamicResource MahApps.Brushes.Accent}"
+			            Orientation="Horizontal">
 
-                <CheckBox Height="30"
-                          Margin="10,0,0,0"
-                          Content="AllUsers"
-                          IsChecked="{Binding Filter.AllUsers}" />
+				<CheckBox Height="30"
+				          Margin="10,0,0,0"
+				          Content="AllUsers"
+				          IsChecked="{Binding Filter.AllUsers}" />
 
-                <CheckBox Height="30"
-                          Margin="10,0,10,0"
-                          Content="Removable"
-                          IsChecked="{Binding Filter.Removable}" />
+				<CheckBox Height="30"
+				          Margin="10,0,10,0"
+				          Content="Removable"
+				          IsChecked="{Binding Filter.Removable}" />
 
-                <Label Height="30"
-                       VerticalContentAlignment="Center"
-                       Content="SignatureKind:" />
-                <ComboBox Width="70"
-                          Height="30"
-                          ItemsSource="{Binding Kinds}"
-                          SelectedItem="{Binding Path=Filter.Kind}" />
+				<Label Height="30"
+				       VerticalContentAlignment="Center"
+				       Content="SignatureKind:" />
+				<ComboBox Width="70"
+				          Height="30"
+				          ItemsSource="{Binding Kinds}"
+				          SelectedItem="{Binding Path=Filter.Kind}" />
 
-                <Label Height="30"
-                       VerticalContentAlignment="Center"
-                       Content="Name like:" />
-                <TextBox Width="200"
-                         Height="30"
-                         Text="{Binding Filter.TextFilter, UpdateSourceTrigger=PropertyChanged}" />
+				<Label Height="30"
+				       VerticalContentAlignment="Center"
+				       Content="Name like:" />
+				<TextBox Width="200"
+				         Height="30"
+				         Text="{Binding Filter.TextFilter, UpdateSourceTrigger=PropertyChanged}" />
 
-                <Button Height="30"
-                        Margin="10,0,0,0"
-                        Padding="10,0,10,0"
-                        Command="{Binding DeleteSelectedCommand}"
-                        Content="Uninstall Selected" />
+				<Button Height="30"
+				        Margin="10,0,0,0"
+				        Padding="10,0,10,0"
+				        Command="{Binding DeleteSelectedCommand}"
+				        Content="Uninstall Selected" />
 
-            </StackPanel>
+			</StackPanel>
 
-            <DataGrid Grid.Row="1"
-                      AutoGenerateColumns="False"
-                      CanUserAddRows="False"
-                      ItemsSource="{Binding Source={StaticResource SortedItems}}">
-                <DataGrid.Columns>
-                    <DataGridCheckBoxColumn Width="80"
-                                            Binding="{Binding Uninstall}"
-                                            Header="Uninstall" />
-                    <DataGridTextColumn Width="300"
-                                        Binding="{Binding Package.Name}"
-                                        Header="Name" />
-                    <DataGridTextColumn Binding="{Binding Package.Status}" Header="Status" />
-                    <DataGridTextColumn Binding="{Binding Package.NonRemovable}" Header="NonRemovable" />
-                    <DataGridTextColumn Binding="{Binding Package.SignatureKind}" Header="SignatureKind" />
-                    <DataGridTextColumn Width="120"
-                                        Binding="{Binding Package.Version}"
-                                        Header="Version" />
-                    <DataGridTextColumn Width="*"
-                                        Binding="{Binding Package.PackageFullName}"
-                                        Header="FullName" />
-                    <DataGridTextColumn Width="*"
-                                        Binding="{Binding Package.InstallLocation}"
-                                        Header="Install Location" />
-                    <DataGridTextColumn Width="*"
-                                        Binding="{Binding Package.Publisher}"
-                                        Header="Publisher" />
-                </DataGrid.Columns>
-            </DataGrid>
+			<DataGrid Grid.Row="1"
+			          AutoGenerateColumns="False"
+			          CanUserAddRows="False"
+			          CanUserDeleteRows="False"
+			          ItemsSource="{Binding Source={StaticResource SortedItems}}">
+				<DataGrid.Columns>
+					<DataGridTemplateColumn Width="80" Header="Uninstall">
+						<DataGridTemplateColumn.CellTemplate>
+							<DataTemplate>
+								<CheckBox HorizontalAlignment="Center" IsChecked="{Binding Uninstall}" />
+							</DataTemplate>
+						</DataGridTemplateColumn.CellTemplate>
+					</DataGridTemplateColumn>
+					<!--<DataGridCheckBoxColumn Width="80"
+					                        Binding="{Binding Uninstall}"
+					                        Header="Uninstall" />-->
+					<DataGridTextColumn Width="300"
+					                    Binding="{Binding Package.Name}"
+					                    Header="Name"
+					                    IsReadOnly="True" />
+					<DataGridTextColumn Binding="{Binding Package.Status}"
+					                    Header="Status"
+					                    IsReadOnly="True" />
+					<DataGridTextColumn Binding="{Binding Package.NonRemovable}"
+					                    Header="NonRemovable"
+					                    IsReadOnly="True" />
+					<DataGridTextColumn Binding="{Binding Package.SignatureKind}"
+					                    Header="SignatureKind"
+					                    IsReadOnly="True" />
+					<DataGridTextColumn Width="120"
+					                    Binding="{Binding Package.Version}"
+					                    Header="Version"
+					                    IsReadOnly="True" />
+					<DataGridTextColumn Width="*"
+					                    Binding="{Binding Package.PackageFullName}"
+					                    Header="FullName"
+					                    IsReadOnly="True" />
+					<DataGridTextColumn Width="*"
+					                    Binding="{Binding Package.InstallLocation}"
+					                    Header="Install Location"
+					                    IsReadOnly="True" />
+					<DataGridTextColumn Width="*"
+					                    Binding="{Binding Package.Publisher}"
+					                    Header="Publisher"
+					                    IsReadOnly="True" />
+				</DataGrid.Columns>
 
-            <mah:ProgressRing Grid.Row="1"
-                              Foreground="{DynamicResource AccentColorBrush}"
-                              IsActive="{Binding IsLoading}" />
+				<!--<DataGrid.RowStyle>
+                    <Style TargetType="DataGridRow">
+                        <EventSetter Event="MouseRightButtonDown" Handler="DataGridRow_MouseRightButtonDown" />
+                    </Style>
+                </DataGrid.RowStyle>-->
+			</DataGrid>
 
-            <GroupBox Grid.Row="2"
-                      Padding="0"
-                      Header="Console Log">
-                <TextBox Name="tbErrorMessage"
-                         Margin="0"
-                         Padding="0"
-                         AcceptsReturn="True"
-                         Background="Black"
-                         Foreground="{DynamicResource MahApps.Brushes.Accent}"
-                         TextWrapping="Wrap"
-                         VerticalScrollBarVisibility="Visible" />
-            </GroupBox>
+			<mah:ProgressRing Grid.Row="1"
+			                  Foreground="{DynamicResource AccentColorBrush}"
+			                  IsActive="{Binding IsLoading}" />
 
-        </Grid>
-    </Grid>
+			<GroupBox Grid.Row="2"
+			          Padding="0"
+			          Header="Console Log">
+				<TextBox Name="tbErrorMessage"
+				         Margin="0"
+				         Padding="0"
+				         AcceptsReturn="True"
+				         Background="Black"
+				         Foreground="{DynamicResource MahApps.Brushes.Accent}"
+				         TextWrapping="Wrap"
+				         VerticalScrollBarVisibility="Visible" />
+			</GroupBox>
+
+		</Grid>
+	</Grid>
 </UserControl>
