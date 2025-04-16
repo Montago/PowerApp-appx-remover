@@ -7,7 +7,6 @@
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:scm="clr-namespace:System.ComponentModel;assembly=WindowsBase"
              x:Name="root"
-             d:DataContext="{d:DesignInstance Type=local:AppxList}"
              d:DesignHeight="400"
              d:DesignWidth="1100"
              Background="White"
@@ -57,7 +56,7 @@
                        Content="Name like:" />
                 <TextBox Width="200"
                          Height="30"
-                         Text="{Binding Filter.TextFilter, UpdateSourceTrigger=PropertyChanged}" />
+                         Text="{Binding Filter.TextFilter, UpdateSourceTrigger=PropertyChanged, TargetNullValue=''}" />
 
                 <Button Height="30"
                         Margin="10,0,0,0"

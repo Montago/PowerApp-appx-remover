@@ -2,10 +2,11 @@
 
 	<PropertyGroup>
 		<OutputType>WinExe</OutputType>
-		<TargetFramework>net8.0-windows</TargetFramework>
+		<TargetFramework>net9.0-windows7.0</TargetFramework>
 		<UseWPF>true</UseWPF>
 		<ApplicationIcon>package.ico</ApplicationIcon>
-		<ApplicationManifest>app.manifest</ApplicationManifest>
+		<!--<ApplicationManifest>app.manifest</ApplicationManifest>-->
+		<Nullable>enable</Nullable>
 	</PropertyGroup>
 
 	<ItemGroup>
