@@ -146,6 +146,7 @@ namespace PowerApp.Client.Controls
         {
             Dispatcher.Invoke(() =>
             {
+                logRow.Height = new GridLength(0);
                 tbErrorMessage.Text = "";
             });
 
@@ -174,6 +175,7 @@ namespace PowerApp.Client.Controls
             {
                 Dispatcher.Invoke(() =>
                 {
+                    logRow.Height = new GridLength(150);
                     tbErrorMessage.Text += ex.Message + "\n\n";
                 });
 
