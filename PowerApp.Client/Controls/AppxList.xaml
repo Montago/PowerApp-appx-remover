@@ -70,19 +70,19 @@
                       AutoGenerateColumns="False"
                       CanUserAddRows="False"
                       CanUserDeleteRows="False"
-                      ItemsSource="{Binding Source={StaticResource SortedItems}}">
+                      IsReadOnly="False"
+                      ItemsSource="{Binding Source={StaticResource SortedItems}}"
+                      RowDetailsVisibilityMode="VisibleWhenSelected">
                 <DataGrid.Columns>
-                    <DataGridTemplateColumn Width="80" Header="Uninstall">
+                    <DataGridTemplateColumn Width="90" Header="Uninstall">
                         <DataGridTemplateColumn.CellTemplate>
                             <DataTemplate>
-                                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding Uninstall}" />
+                                <CheckBox HorizontalAlignment="Center" IsChecked="{Binding Uninstall, UpdateSourceTrigger=PropertyChanged}" />
                             </DataTemplate>
                         </DataGridTemplateColumn.CellTemplate>
                     </DataGridTemplateColumn>
-                    <!--<DataGridCheckBoxColumn Width="80"
-					                        Binding="{Binding Uninstall}"
-					                        Header="Uninstall" />-->
-                    <DataGridTextColumn Width="300"
+
+                    <DataGridTextColumn Width="400"
                                         Binding="{Binding Package.Name}"
                                         Header="Name"
                                         IsReadOnly="True" />
@@ -99,25 +99,42 @@
                                         Binding="{Binding Package.Version}"
                                         Header="Version"
                                         IsReadOnly="True" />
-                    <DataGridTextColumn Width="*"
-                                        Binding="{Binding Package.PackageFullName}"
-                                        Header="FullName"
-                                        IsReadOnly="True" />
-                    <DataGridTextColumn Width="*"
-                                        Binding="{Binding Package.InstallLocation}"
-                                        Header="Install Location"
-                                        IsReadOnly="True" />
-                    <DataGridTextColumn Width="*"
-                                        Binding="{Binding Package.Publisher}"
-                                        Header="Publisher"
-                                        IsReadOnly="True" />
                 </DataGrid.Columns>
-
-                <!--<DataGrid.RowStyle>
-                    <Style TargetType="DataGridRow">
-                        <EventSetter Event="MouseRightButtonDown" Handler="DataGridRow_MouseRightButtonDown" />
-                    </Style>
-                </DataGrid.RowStyle>-->
+                <DataGrid.RowDetailsTemplate>
+                    <DataTemplate>
+                        <Grid Background="{DynamicResource MahApps.Brushes.ThemeBackground}">
+                            <StackPanel Margin="95,0,0,10">
+                                <StackPanel Margin="0,5" Orientation="Horizontal">
+                                    <TextBlock FontWeight="Bold"
+                                               Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"
+                                               Text="Install Location:" />
+                                    <TextBlock Margin="5,0"
+                                               Cursor="Hand"
+                                               Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"
+                                               MouseLeftButtonUp="CopyInstallLocationToClipboard"
+                                               Text="{Binding Package.InstallLocation}"
+                                               TextDecorations="Underline" />
+                                </StackPanel>
+                                <StackPanel Margin="0,5" Orientation="Horizontal">
+                                    <TextBlock FontWeight="Bold"
+                                               Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"
+                                               Text="Publisher:" />
+                                    <TextBlock Margin="5,0"
+                                               Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"
+                                               Text="{Binding Package.Publisher}" />
+                                </StackPanel>
+                                <StackPanel Margin="0,5" Orientation="Horizontal">
+                                    <TextBlock FontWeight="Bold"
+                                               Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"
+                                               Text="Full Name:" />
+                                    <TextBlock Margin="5,0"
+                                               Foreground="{DynamicResource MahApps.Brushes.ThemeForeground}"
+                                               Text="{Binding Package.PackageFullName}" />
+                                </StackPanel>
+                            </StackPanel>
+                        </Grid>
+                    </DataTemplate>
+                </DataGrid.RowDetailsTemplate>
             </DataGrid>
 
             <mah:ProgressRing Grid.Row="1"

@@ -1,4 +1,5 @@
-﻿using PowerApp.Client.Helpers;
+﻿using DebounceThrottle;
+using PowerApp.Client.Helpers;
 using System;
 using System.Collections.ObjectModel;
 using System.ComponentModel;
@@ -34,11 +35,13 @@ namespace PowerApp.Client.Controls
         }
         #endregion
 
-        public ObservableCollection<ListItem> AppxPackages { get; set; } = new ObservableCollection<ListItem>();
+        public ObservableCollection<ListItem> AppxPackages { get; set; } = [];
 
-        public ObservableCollection<string> Kinds { get; set; } = new ObservableCollection<string>();
+        public ObservableCollection<string> Kinds { get; set; } = [];
 
         public AppxFilter Filter { get; set; } = new AppxFilter();
+
+        private readonly DebounceDispatcher _debounce = new(TimeSpan.FromMicroseconds(100));
 
         public AppxList()
         {
@@ -46,22 +49,20 @@ namespace PowerApp.Client.Controls
 
             Kinds.Add("*");
 
-            GetPackages();
+            _ = GetPackages();
 
             (Filter as INotifyPropertyChanged).PropertyChanged += AppxList_PropertyChanged;
         }
 
-        private void AppxList_PropertyChanged(object? sender, PropertyChangedEventArgs e)
+        private async void AppxList_PropertyChanged(object? sender, PropertyChangedEventArgs e)
         {
             if (e.PropertyName == "AllUsers")
             {
-                GetPackages();
+                await GetPackages();
             }
-            else
-            {
-                var sorting = (CollectionViewSource)gbRoot.Resources["SortedItems"];
-                sorting.View.Refresh();
-            }
+
+            var sorting = (CollectionViewSource)gbRoot.Resources["SortedItems"];
+            sorting.View.Refresh();
         }
 
         public void ResetSorting()
@@ -85,56 +86,39 @@ namespace PowerApp.Client.Controls
             }
         }
 
-        private void GetPackages()
+        private async Task GetPackages()
         {
             AppxPackages.Clear();
 
-            Task.Run(() =>
+            IsLoading = true;
+
+            var allusers = Filter.AllUsers ? " -AllUsers" : "";
+
+            try
             {
-                Application.Current.Dispatcher.Invoke(() =>
+                var packages = await Task.Run(() => PowerShellWrapper.RunCommand($"Get-AppxPackage{allusers}"))
+                    ?? throw new Exception("No packages found.");
+
+                foreach (var package in packages)
                 {
-                    IsLoading = true;
-                });
-
-                var allusers = Filter.AllUsers ? " -AllUsers" : "";
-
-                try
-                {
-                    var Packages = PowerShellWrapper.RunCommand($"Get-AppxPackage{allusers}")
-                        ?? throw new Exception("No packages found.");
-
-                    foreach (var package in Packages)
+                    if (!Kinds.Contains((package as dynamic).SignatureKind as string ?? ""))
                     {
-                        Dispatcher.Invoke(() =>
-                        {
-                            if (!Kinds.Contains((package as dynamic).SignatureKind as string ?? ""))
-                            {
-                                Kinds.Add((package as dynamic).SignatureKind as string ?? "");
-                            }
-
-                            var item = new ListItem { Package = package };
-
-                            item.PropertyChanged += (s, e) => CommandManager.InvalidateRequerySuggested();
-
-                            AppxPackages.Add(item);
-                        });
+                        Kinds.Add((package as dynamic).SignatureKind as string ?? "");
                     }
-                }
-                catch (Exception ex)
-                {
-                    MessageBox.Show(ex.Message);
-                }
 
-                Application.Current.Dispatcher.Invoke(() =>
-                {
-                    IsLoading = false;
-                });
-            });
-        }
+                    var item = new ListItem { Package = package };
 
-        private void Item_PropertyChanged(object sender, PropertyChangedEventArgs e)
-        {
-            throw new NotImplementedException();
+                    item.PropertyChanged += (o, e) => CommandManager.InvalidateRequerySuggested();
+
+                    AppxPackages.Add(item);
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show(ex.Message);
+            }
+
+            IsLoading = false;
         }
 
         #region DeleteSelectedCommand
@@ -183,6 +167,16 @@ namespace PowerApp.Client.Controls
             }
         }
 
+        private void CopyInstallLocationToClipboard(object sender, MouseButtonEventArgs e)
+        {
+            if (sender is TextBlock text)
+            {
+                Clipboard.SetText(text.Text);
+                MessageBox.Show(text.Text + "\n\nCopied to clipboard");
+            }
+        }
+
+
         //private void OpenFileLocation(string filePath)
         //{
         //    if (Directory.Exists(filePath))
@@ -212,87 +206,5 @@ namespace PowerApp.Client.Controls
         //        contextMenu.IsOpen = true;
         //    }
         //}
-    }
-
-    public class ListItem : INotifyPropertyChanged
-    {
-        #region INotifyPropertyChanged
-
-        public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        #endregion
-
-        #region Uninstall INPC Property
-        private bool _uninstall;
-
-        public bool Uninstall
-        {
-            get { return _uninstall; }
-            set { _uninstall = value; OnPropertyChanged("Uninstall"); }
-        }
-        #endregion
-
-        #region Package INPC Property
-        private PSObject? _package;
-
-        public PSObject? Package
-        {
-            get { return _package; }
-            set { _package = value; OnPropertyChanged("Package"); }
-        }
-        #endregion
-    }
-
-    public class AppxFilter : INotifyPropertyChanged
-    {
-        #region INotifyPropertyChanged
-
-        public void OnPropertyChanged(string name) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(name));
-
-        public event PropertyChangedEventHandler? PropertyChanged;
-
-        #endregion
-
-        #region Removable INPC Property
-        private bool _removable;
-
-        public bool Removable
-        {
-            get { return _removable; }
-            set { _removable = value; OnPropertyChanged("Removable"); }
-        }
-        #endregion
-
-        #region Kind INPC Property
-        private string _kind = "*";
-
-        public string Kind
-        {
-            get { return _kind; }
-            set { _kind = value; OnPropertyChanged("Kind"); }
-        }
-        #endregion
-
-        #region TextFilter INPC Property
-        private string? _textfilter;
-
-        public string? TextFilter
-        {
-            get { return _textfilter; }
-            set { _textfilter = value; OnPropertyChanged("TextFilter"); }
-        }
-        #endregion
-
-        #region AllUsers INPC Property
-        private bool _allusers;
-
-        public bool AllUsers
-        {
-            get { return _allusers; }
-            set { _allusers = value; OnPropertyChanged("AllUsers"); }
-        }
-        #endregion
     }
 }
