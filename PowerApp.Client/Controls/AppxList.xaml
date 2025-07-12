@@ -18,6 +18,7 @@
                                   Source="{Binding AppxPackages}">
                 <CollectionViewSource.SortDescriptions>
                     <scm:SortDescription Direction="Ascending" PropertyName="Package.Name" />
+                    <scm:SortDescription Direction="Ascending" PropertyName="Package.Version" />
                 </CollectionViewSource.SortDescriptions>
             </CollectionViewSource>
         </Grid.Resources>
