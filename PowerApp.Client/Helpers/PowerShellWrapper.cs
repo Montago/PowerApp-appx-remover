@@ -7,7 +7,7 @@ namespace PowerApp.Client.Helpers
 {
     public static class PowerShellWrapper
     {
-        public static List<PSObject> RunCommand(string command)
+        public static List<PSObject>? RunCommand(string command)
         {
             var sessionState = InitialSessionState.CreateDefault();
             sessionState.ExecutionPolicy = Microsoft.PowerShell.ExecutionPolicy.Unrestricted;
