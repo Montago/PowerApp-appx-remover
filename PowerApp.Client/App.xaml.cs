@@ -15,7 +15,7 @@ namespace PowerApp.Client
 				// Restart the application with administrator rights
 				var processInfo = new ProcessStartInfo
 				{
-					FileName = Process.GetCurrentProcess().MainModule.FileName!,
+					FileName = Process.GetCurrentProcess().MainModule?.FileName ?? "PowerApp.Client.exe",
 					UseShellExecute = true,
 					Verb = "runas"
 				};
